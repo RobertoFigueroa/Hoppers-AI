@@ -30,18 +30,18 @@ class Hoppers(object):
                 print(self.board[i][j], end='  ')
             print()
 
-    def move(self, x, y, symbol):
-        x = x-1
-        y = y-1
-        if self.board[x][y] == '_':
-            self.board[x][y] = symbol
-            return True
+    def move(self,currentX, currentY, x, y, symbol):
+        if x > 0 or x <= 10 or y > 0 or y <= 10:
+            x -= 1
+            y -= 1
+            currentX -= 1
+            currentY -= 1
+            if self.board[x][y] == '_':
+                self.board[x][y] = symbol
+                self.board[currentX][currentY] = '_'
+                return True
+            else:
+                return False
         else:
             return False
 
-h = Hoppers(10, 10)
-h.move(1,1,'X')
-h.move(1,1,'X')
-h.move(1,4,'O')
-
-h.print_board()
