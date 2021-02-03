@@ -1,5 +1,5 @@
 from hoppers import Hoppers
-from minimax import findPath
+from minimax import findPath, bestScore
 #setting up the game
 print("Welcome to hoppers game!")
 game = Hoppers(10, 10)
@@ -23,4 +23,10 @@ while True:
         'X')
     game.print_board()
     print("Turn: Player 2 (Soon AI)")
+    print("game status:", game.check_for_winner())
+    ai_place2move = bestScore(game)
+    if ai_place2move != None:
+        game.move(ai_place2move[0],ai_place2move[1],ai_place2move[2],ai_place2move[3],'O')
+    game.print_board()
+    print(ai_place2move)
     
