@@ -6,28 +6,54 @@
 from math import sqrt
 
 def bestScore(hopper):
-    hopper_board = hopper.board
     coins = hopper.coins_position()
     bestScore = float('-inf')
     best_position = None
     #check for all posibles moves and minimax each one in order to find the best score
     for i in coins:
-        path = findPath(hopper_board,10, i[0], i[1],'O') #O can be change by a global variable
+        path = findPath(hopper.board,10, i[0], i[1],'O') #O can be change by a global variable
         if len(path) > 0:
             for coord in path:
-                child_board = hopper_board
-                child_board[coord[0]-1][coord[1]-1] = 'O' #again this could be a global variable
-                score = minimax(child_board, 3, True)
-                child_board[coord[0]-1][coord[1]-1] = '_' #again this could be a global variable
+                hopper.board[coord[0]-1][coord[1]-1] = 'O' #again this could be a global variable
+                score = minimax(hopper, 3, True)
+                hopper.board[coord[0]-1][coord[1]-1] = '_' #again this could be a global variable
                 
                 #hopper_board[coord[0]][coord[1]] = '_' #reverting to initial state
-                if (score > bestScore):
+                if score > bestScore:
                     bestScore = score
                     best_position = [i[0]+1, i[1]+1, coord[0], coord[1]]
     return best_position
 
-def minimax(board, depth, isMaximinzing):
-    # winner = False #check for winner
+def minimax(game, depth, isMaximinzing):
+    winner = game.check_for_winner()
+    if depth == 0 or winner != 0:
+        return 1 #it should be heuristic_fucntion
+    
+    if isMaximinzing:
+        bestScore = float('-inf')
+        coins = game.coins_position(isAI=False)
+        for i in coins:
+            path = findPath(game.board, 10, i[0], i[1], 'X')
+            if len(path) > 0:
+                for coord in path:
+                    game.board[coord[0]-1][coord[1]-1] = 'X'
+                    score = minimax(game, depth-1, False)
+                    game.board[coord[0]-1][coord[1]-1] = '_'
+                    bestScore = max(score, bestScore)
+        return bestScore
+    else:
+        bestScore = float('inf')
+        coins = game.coins_position(isAI=False)
+        for i in coins:
+            path = findPath(game.board, 10, i[0], i[1], 'X')
+            if len(path) > 0:
+                for coord in path:
+                    game.board[coord[0]-1][coord[1]-1] = 'X'
+                    score = minimax(game, depth-1, True)
+                    game.board[coord[0]-1][coord[1]-1] = '_'
+                    bestScore = min(score, bestScore)
+        return bestScore
+
 
     # if depth == 0 or winner:
     #     return 1 #heuristic value of the node
@@ -65,4 +91,36 @@ def findPath(board, boardsize, current_x, current_y, symbol): #refactor to find_
 
     return tiles_available
 
-        
+    
+
+
+def check_for_winner(board):
+    first_player_columns = 5
+    first_player_coins = 0
+    second_player_coins = 0
+    free_space_coins = 0
+    for i in range(5):
+        for j in range(first_player_columns):
+            if board[i][j] == 'X':
+                first_player_coins += 1
+            if board[i][j] == '_':
+                free_space_coins += 1
+        first_player_columns -= 1
+    
+    if first_player_coins < 15 and free_space_coins == 0:
+        return 1 #1 Means first player won
+
+    free_space_coins = 0   
+    second_player_columns = 9
+    for i in range(5,10):
+        for j in range(second_player_columns,10):
+            if board[i][j] == 'O':
+                second_player_coins += 1
+            if board[i][j] == '_':
+                free_space_coins += 1
+        second_player_columns -= 1
+
+    if second_player_coins < 15 and free_space_coins == 0:
+        return -1 #means second player won
+    
+    return 0 #no winner

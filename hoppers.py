@@ -80,13 +80,24 @@ class Hoppers(object):
         else:
             return False
 
-    def coins_position(self): #mayb this function could be more genera 
-        second_player_columns = 9
+    def coins_position(self, isAI=True): #mayb this function could be more genera 
         positions = []
-        for i in range(self.width):
-            for j in range(self.height):
-                if self.board[i][j] == self.second_player_symbol: #here, this could be more general not just for secon plaer symbol
-                    positions.append((i,j))
-            second_player_columns -= 1
-        return positions
+        if isAI:
+            second_player_columns = 9
+            for i in range(self.width):
+                for j in range(self.height):
+                    if self.board[i][j] == self.second_player_symbol: #here, this could be more general not just for secon plaer symbol
+                        positions.append((i,j))
+                second_player_columns -= 1
+            return positions
+        else:
+            first_player_columns = 5
+            for i in range(5):
+                for j in range(first_player_columns):
+                    if self.board[i][j] == self.first_player_symbol:
+                        positions.append((i,j))
+                first_player_columns -= 1
+            return positions
+
+
 
