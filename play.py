@@ -10,7 +10,7 @@ while True:
     print("Turn: Player 1")
     coin2move = input("Type wich coin you want to move separated by commas: ")
     coin_coords = coin2move.split(',')
-    options = findPath(game.board, 10, int(coin_coords[0])-1, int(coin_coords[1])-1,'X')
+    options = findPath(game.board, 10, int(coin_coords[0])-1, int(coin_coords[1])-1,'X', False)
     print("options: ", options)
     place2move = input("Type where you want to move separated by comma: ")
     next_coords = place2move.split(',')
@@ -26,7 +26,7 @@ while True:
     print("game status:", game.check_for_winner())
     ai_place2move = bestScore(game)
     if ai_place2move != None:
-        game.move(ai_place2move[0],ai_place2move[1],ai_place2move[2],ai_place2move[3],'O')
+       game.move(ai_place2move[0],ai_place2move[1],ai_place2move[2],ai_place2move[3],'O')
     game.print_board()
     print(ai_place2move)
     

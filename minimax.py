@@ -11,7 +11,7 @@ def bestScore(hopper):
     best_position = None
     #check for all posibles moves and minimax each one in order to find the best score
     for i in coins:
-        path = findPath(hopper.board,10, i[0], i[1],'O') #O can be change by a global variable
+        path = findPath(hopper.board,10, i[0], i[1],'O', False) #O can be change by a global variable
         if len(path) > 0:
             for coord in path:
                 hopper.board[coord[0]-1][coord[1]-1] = 'O' #again this could be a global variable
@@ -33,7 +33,7 @@ def minimax(game, depth, isMaximinzing):
         bestScore = float('-inf')
         coins = game.coins_position(isAI=False)
         for i in coins:
-            path = findPath(game.board, 10, i[0], i[1], 'X')
+            path = findPath(game.board, 10, i[0], i[1], 'X',False)
             if len(path) > 0:
                 for coord in path:
                     game.board[coord[0]-1][coord[1]-1] = 'X'
@@ -45,7 +45,7 @@ def minimax(game, depth, isMaximinzing):
         bestScore = float('inf')
         coins = game.coins_position(isAI=False)
         for i in coins:
-            path = findPath(game.board, 10, i[0], i[1], 'X')
+            path = findPath(game.board, 10, i[0], i[1], 'X',False)
             if len(path) > 0:
                 for coord in path:
                     game.board[coord[0]-1][coord[1]-1] = 'X'
@@ -65,8 +65,8 @@ def minimax(game, depth, isMaximinzing):
 
         
 
-
-def findPath(board, boardsize, current_x, current_y, symbol): #refactor to find_possiblilities or something like that
+#current_x and current_y has to be in board notation (0-9)
+def findPath(board, boardsize, current_x, current_y, symbol, isJumping): #refactor to find_possiblilities or something like that
     tiles_available = []
     low_limit_x = current_x -1
     up_limit_x = current_x + 2
@@ -74,25 +74,47 @@ def findPath(board, boardsize, current_x, current_y, symbol): #refactor to find_
     up_limit_y = current_y +2
     if low_limit_x < 0:
         low_limit_x = current_x
-    if up_limit_x >= 10:
+    if up_limit_x > 10:
         up_limit_x = current_x +1
     if low_limit_y < 0:
         low_limit_y = current_y
-    if up_limit_y >= 10:
+    if up_limit_y > 10:
         up_limit_y = current_y + 1
-    for i in range(low_limit_x,up_limit_x):
-        for j in range(low_limit_y, up_limit_y):
-            if board[i][j] == '_':
-                tiles_available.append((i+1,j+1))
-            # else:
-            #     distance = sqrt((current_x-i)**2+(current_y-j)**2)
-            #     if distance > 1:
-            #         new_pos_x, new_pox_y
+   
+    if isJumping:   
+        av_tiles = []
+        for i in range(low_limit_x, up_limit_x):
+            for j in range(low_limit_y, up_limit_y):
+                if board[i][j] != '_':
+                    jump_x = 2*i-current_x
+                    jump_y = 2*j-current_y
+                    if jump_x >= 0 and jump_x <10 and jump_y >= 0 and jump_y < 10: #just to be sure and not get an error
+                        if board[jump_x][jump_y] == '_':
+                            av_tiles.append((jump_x+1, jump_y+1))
+                            board[jump_x][jump_y] = 'X' 
+                            paths = findPath(board, 10, jump_x, jump_y,'X', True)
+                            board[jump_x][jump_y] = '_' 
+                            av_tiles = av_tiles + paths
+        return av_tiles
 
-    return tiles_available
-
+    else:
+        av_tiles = []
+        for i in range(low_limit_x,up_limit_x):
+            for j in range(low_limit_y, up_limit_y):
+                if board[i][j] == '_':
+                    av_tiles.append((i+1,j+1))
+                else:
+                    jump_x = 2*i-current_x
+                    jump_y = 2*j-current_y
+                    if jump_x >= 0 and jump_x <10 and jump_y >= 0 and jump_y < 10: #just to be sure and not get an error
+                        if board[jump_x][jump_y] == '_':
+                            board[jump_x][jump_y] = 'X' 
+                            paths = findPath(board, 10, jump_x, jump_y,'X', True)
+                            board[jump_x][jump_y] = '_' 
+                            av_tiles.append((jump_x+1,jump_y+1))
+                            av_tiles = av_tiles+paths
+        return av_tiles
     
-
 
 def check_for_winner(board):
     first_player_columns = 5
