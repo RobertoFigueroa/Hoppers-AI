@@ -15,7 +15,7 @@ def bestScore(hopper):
         if len(path) > 0:
             for coord in path:
                 hopper.board[coord[0]-1][coord[1]-1] = 'O' #again this could be a global variable
-                score = minimax(hopper, 3, True)
+                score = minimax(hopper, 3,float('-inf'), float('inf'), True)
                 hopper.board[coord[0]-1][coord[1]-1] = '_' #again this could be a global variable
                 
                 #hopper_board[coord[0]][coord[1]] = '_' #reverting to initial state
@@ -24,7 +24,7 @@ def bestScore(hopper):
                     best_position = [i[0]+1, i[1]+1, coord[0], coord[1]]
     return best_position
 
-def minimax(game, depth, isMaximinzing):
+def minimax(game, depth, alpha, beta, isMaximinzing):
     winner = game.check_for_winner()
     if depth == 0 or winner != 0:
         return 1 #it should be heuristic_fucntion
@@ -37,9 +37,12 @@ def minimax(game, depth, isMaximinzing):
             if len(path) > 0:
                 for coord in path:
                     game.board[coord[0]-1][coord[1]-1] = 'X'
-                    score = minimax(game, depth-1, False)
+                    score = minimax(game, depth-1, alpha, beta, False)
                     game.board[coord[0]-1][coord[1]-1] = '_'
                     bestScore = max(score, bestScore)
+                    alpha = max(alpha, score)
+                    if beta <= alpha:
+                        break
         return bestScore
     else:
         bestScore = float('inf')
@@ -49,9 +52,12 @@ def minimax(game, depth, isMaximinzing):
             if len(path) > 0:
                 for coord in path:
                     game.board[coord[0]-1][coord[1]-1] = 'X'
-                    score = minimax(game, depth-1, True)
+                    score = minimax(game, depth-1, alpha, beta, True)
                     game.board[coord[0]-1][coord[1]-1] = '_'
                     bestScore = min(score, bestScore)
+                    beta = min(beta, score)
+                    if beta <= alpha:
+                        break
         return bestScore
 
 
