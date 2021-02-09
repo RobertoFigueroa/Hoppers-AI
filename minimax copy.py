@@ -5,38 +5,41 @@
 #el heuristco se puede definir en función de lo que avance
 from math import sqrt,log
 
+FIRST_PLAYER = 'X'
+SECOND_PLAYER = 'O' 
+FREE_SPACE = '_'
+
 LADDER_COORDS = [(2,4),(3,3),(4,2)]
 LADDER_POSITIONS = [(n[0]+i,n[1]+i) for i in range(0,4) for n in LADDER_COORDS]
 
-def bestScore(hopper):
+def bestScore(hopper, player):
+    current_player = SECOND_PLAYER
+    if player == 0:
+        current_player = FIRST_PLAYER
     coins = hopper.coins_position()
     bestScore = float('-inf')
     best_position = None
     #check for all posibles moves and minimax each one in order to find the best score
     for i in coins:
-        path = findPath(hopper.board,10, i[0], i[1],'O', False) #O can be change by a global variable
+        path = findPath(hopper.board,10, i[0], i[1],current_player, False) #O can be change by a global variable
         if len(path) > 0:
             for coord in path:
-                hopper.board[coord[0]-1][coord[1]-1] = 'O' #again this could be a global variable
-                hopper.board[i[0]][i[1]] = '_'
-                score = minimax(hopper, 2,float('-inf'), float('inf'), True)
-                hopper.board[i[0]][i[1]] = 'O'
-                hopper.board[coord[0]-1][coord[1]-1] = '_' #again this could be a global variable
-                
-                #hopper_board[coord[0]][coord[1]] = '_' #reverting to initial state
+                hopper.board[coord[0]-1][coord[1]-1] = current_player #again this could be a global variable
+                hopper.board[i[0]][i[1]] = FREE_SPACE
+                score = minimax(hopper, 2,float('-inf'), float('inf'), current_player == SECOND_PLAYER)
+                hopper.board[i[0]][i[1]] = current_player
+                hopper.board[coord[0]-1][coord[1]-1] = FREE_SPACE                
                 if score > bestScore:
                     bestScore = score
-                    best_position = [i[0]+1, i[1]+1, coord[0], coord[1]]
+                    best_position = [i[0]+1, i[1]+1, coord[0], coord[1]] #Returns the best move
     return best_position
 
-def minimax(game, depth, alpha, beta, isMaximinzing):
+def minimax(game, depth, alpha, beta, isMaximizing):
     winner = game.check_for_winner()
     if depth == 0 or winner != 0:
-        p = secon_heuristic(game, isMaximinzing)
-       # print(game.print_board())
-        return p
+        return distance_heuristic(game, isMaximizing) #returns the value of that specific board
     
-    if isMaximinzing:
+    if isMaximizing:
         bestScore = float('-inf')
         coins = game.coins_position(isAI=False)
         for i in coins:
@@ -44,13 +47,13 @@ def minimax(game, depth, alpha, beta, isMaximinzing):
             if len(path) > 0:
                 for coord in path:
                     game.board[coord[0]-1][coord[1]-1] = 'X'
-                    game.board[i[0]][i[1]] = '_'
+                    game.board[i[0]][i[1]] = FREE_SPACE
                     score = minimax(game, depth-1, alpha, beta, False)
                     game.board[i[0]][i[1]] = 'X'
-                    game.board[coord[0]-1][coord[1]-1] = '_'
+                    game.board[coord[0]-1][coord[1]-1] = FREE_SPACE
                     bestScore = max(score, bestScore)
                     alpha = max(alpha, score)
-                    if beta <= alpha:
+                    if alpha >= beta:
                         break
         return bestScore
     else:
@@ -61,10 +64,10 @@ def minimax(game, depth, alpha, beta, isMaximinzing):
             if len(path) > 0:
                 for coord in path:
                     game.board[coord[0]-1][coord[1]-1] = 'O'
-                    game.board[i[0]][i[1]] = 'O'
+                    game.board[i[0]][i[1]] = FREE_SPACE
                     score = minimax(game, depth-1, alpha, beta, True)
                     game.board[i[0]][i[1]] = 'O'
-                    game.board[coord[0]-1][coord[1]-1] = '_'
+                    game.board[coord[0]-1][coord[1]-1] = FREE_SPACE
                     bestScore = min(score, bestScore)
                     beta = min(beta, score)
                     if beta <= alpha:
@@ -166,33 +169,22 @@ def check_for_winner(board):
 
 def distance_heuristic(game, isMaximizing):
     points = 0
+    player = 1
+    if not isMaximizing:
+        player = -1
     coins = game.coins_position(isMaximizing)
     for i in coins:
         if i in LADDER_POSITIONS:
-            points += 1
+            points += 1 
     if isMaximizing: #this is for add more points when is closer to goal
         closer_coin = min(coins)
         distance = sqrt((0-closer_coin[0])**2+(0-closer_coin[1])**2)
-        points += -log(distance+1,10)+1
+        points += -log(distance+1,10)+3
     else:
         closer_coin = max(coins)
         distance = sqrt((9-closer_coin[0])**2+(9-closer_coin[1])**2)
-        points += -log(distance+1,10)+1
+        points += -log(distance+1,10)+3
         
     return points
 
-
-def secon_heuristic(game, isMaximizing):
-    points = 0
-    coins = game.coins_position(isMaximizing)
-    for i in coins:
-        distance = sqrt((0-i[0])**2+(0-i[1])**2)
-        if isMaximizing:
-            points += -log(distance+1, 10)+5
-            if i in LADDER_POSITIONS:
-                points += 10
-        else:
-            points -= -log(distance+1, 10)+5
-            if i in LADDER_POSITIONS:
-                points -= 10
-    return points
+        
