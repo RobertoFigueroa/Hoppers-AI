@@ -5,34 +5,55 @@
 #el heuristco se puede definir en función de lo que avance
 from math import sqrt,log
 
-LADDER_COORDS = [(2,4),(3,3),(4,2)]
+LADDER_COORDS = [(2,4),(4,2)]
 LADDER_POSITIONS = [(n[0]+i,n[1]+i) for i in range(0,4) for n in LADDER_COORDS]
 
-def bestScore(hopper):
-    coins = hopper.coins_position()
-    bestScore = float('-inf')
-    best_position = None
-    #check for all posibles moves and minimax each one in order to find the best score
-    for i in coins:
-        path = findPath(hopper.board,10, i[0], i[1],'O', False) #O can be change by a global variable
-        if len(path) > 0:
-            for coord in path:
-                hopper.board[coord[0]-1][coord[1]-1] = 'O' #again this could be a global variable
-                hopper.board[i[0]][i[1]] = '_'
-                score = minimax(hopper, 2,float('-inf'), float('inf'), True)
-                hopper.board[i[0]][i[1]] = 'O'
-                hopper.board[coord[0]-1][coord[1]-1] = '_' #again this could be a global variable
-                
-                #hopper_board[coord[0]][coord[1]] = '_' #reverting to initial state
-                if score > bestScore:
-                    bestScore = score
-                    best_position = [i[0]+1, i[1]+1, coord[0], coord[1]]
-    return best_position
+def bestScore(hopper,player_turn):
+    if player_turn == 1:
+        coins = hopper.coins_position()
+        bestScore = float('-inf')
+        best_position = None
+        #check for all posibles moves and minimax each one in order to find the best score
+        for i in coins:
+            path = findPath(hopper.board,10, i[0], i[1],'O', False) #O can be change by a global variable
+            if len(path) > 0:
+                for coord in path:
+                    hopper.board[coord[0]-1][coord[1]-1] = 'O' #again this could be a global variable
+                    hopper.board[i[0]][i[1]] = '_'
+                    score = minimax(hopper, 2,float('-inf'), float('inf'), True)
+                    hopper.board[i[0]][i[1]] = 'O'
+                    hopper.board[coord[0]-1][coord[1]-1] = '_' #again this could be a global variable
+                    
+                    #hopper_board[coord[0]][coord[1]] = '_' #reverting to initial state
+                    if score > bestScore:
+                        bestScore = score
+                        best_position = [i[0]+1, i[1]+1, coord[0], coord[1]]
+        return best_position
+    else:
+        coins = hopper.coins_position(isAI=False)
+        bestScore = float('inf')
+        best_position = None
+        #check for all posibles moves and minimax each one in order to find the best score
+        for i in coins:
+            path = findPath(hopper.board,10, i[0], i[1],'X', False) #O can be change by a global variable
+            if len(path) > 0:
+                for coord in path:
+                    hopper.board[coord[0]-1][coord[1]-1] = 'X' #again this could be a global variable
+                    hopper.board[i[0]][i[1]] = '_'
+                    score = minimax(hopper, 2,float('-inf'), float('inf'), False)
+                    hopper.board[i[0]][i[1]] = 'X'
+                    hopper.board[coord[0]-1][coord[1]-1] = '_' #again this could be a global variable
+                    
+                    #hopper_board[coord[0]][coord[1]] = '_' #reverting to initial state
+                    if score < bestScore:
+                        bestScore = score
+                        best_position = [i[0]+1, i[1]+1, coord[0], coord[1]]
+        return best_position
 
 def minimax(game, depth, alpha, beta, isMaximinzing):
     winner = game.check_for_winner()
     if depth == 0 or winner != 0:
-        p = secon_heuristic(game, isMaximinzing)
+        p = second_heuristic(game, isMaximinzing)
        # print(game.print_board())
         return p
     
@@ -61,7 +82,7 @@ def minimax(game, depth, alpha, beta, isMaximinzing):
             if len(path) > 0:
                 for coord in path:
                     game.board[coord[0]-1][coord[1]-1] = 'O'
-                    game.board[i[0]][i[1]] = 'O'
+                    game.board[i[0]][i[1]] = '_'
                     score = minimax(game, depth-1, alpha, beta, True)
                     game.board[i[0]][i[1]] = 'O'
                     game.board[coord[0]-1][coord[1]-1] = '_'
@@ -182,7 +203,7 @@ def distance_heuristic(game, isMaximizing):
     return points
 
 
-def secon_heuristic(game, isMaximizing):
+def second_heuristic(game, isMaximizing):
     points = 0
     coins = game.coins_position(isMaximizing)
     for i in coins:
@@ -190,9 +211,11 @@ def secon_heuristic(game, isMaximizing):
         if isMaximizing:
             points += -log(distance+1, 10)+5
             if i in LADDER_POSITIONS:
-                points += 10
+                points += 5
         else:
             points -= -log(distance+1, 10)+5
             if i in LADDER_POSITIONS:
-                points -= 10
+                points -= 5
     return points
+
+
