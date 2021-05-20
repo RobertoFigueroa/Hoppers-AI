@@ -13,9 +13,9 @@ class Board:
         self.blueCorner = []
         self.redCorner = []
         
-
-        self.getRedCorner(int(self.size/2))
-        self.getBlueCorner(int(self.size/2))
+        #self.initPieces()
+        self.getRedCorner()
+        self.getBlueCorner()
         self.chosenMove = 0
 
     def changeTurn(self):
@@ -23,7 +23,8 @@ class Board:
             self.turn = 2
         else:
             self.turn = 1
-    
+
+
     def detectWin(self):
         blueWins = False
         redWins = False
@@ -42,7 +43,7 @@ class Board:
             elif self.get_piece_at(coord[0], coord[1]) == 2:
                 blueWins = True
 
-            return (redWins, blueWins)
+        return (redWins, blueWins)
     
     def get_piece_at(self, row, col):
         return self.board[row][col]
@@ -51,7 +52,7 @@ class Board:
     def get_board(self):
         return self.board
 
-    def initPieces(self, size):
+    def initPieces(self):
         for i in range(5):
             self.board[i,:5-i] = self.RED
         for j in range(5,10):
