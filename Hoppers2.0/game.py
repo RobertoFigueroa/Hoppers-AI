@@ -28,7 +28,7 @@ totalPieces = 0
 data_board = Board()
 data_board.initPieces()
 
-if humanPlayer == "green":
+if humanPlayer == "blue":
     humanTurn = 2
     AITurn = 1
 else:
@@ -42,14 +42,43 @@ data_board.pp_board()
 
 while(not_winner):
     if data_board.turn == 2:
-        coords = input("Inserte row and column of the tile you want to move: ")
+        coords = input("Insert row and column of the tile you want to move: ")
         coords_splitted = coords.split(',')
-        legal_moves = machinePlayer.generate_legal_moves(int(coords_splitted[0])-1, int(coords_splitted[1])-1, data_board.get_board())
-        print("Places to move: \n")
+        x_pos = int(coords_splitted[0])-1
+        y_pos = int(coords_splitted[1])-1
+        legal_moves = machinePlayer.generate_legal_moves(x_pos, y_pos, data_board.get_board())
+        print("Recomended places to move: \n")
         data_board.pp_board(legal_moves)
+        coord2move = input("Insert row and column where you want to move {} coord tile: ".format((x_pos+1, y_pos+1)))
+        coord2move_splitted = coord2move.split(',')
+        next_x = int(coord2move_splitted[0])-1
+        next_y = int(coord2move_splitted[1])-1
+        data_board.move_piece((x_pos, y_pos), (next_x, next_y))
+        data_board.pp_board()
 
+    if data_board.turn == 1:
+        copy_board = Board()
+        copy_board.set_board(data_board.get_board())
+        root_node = Node(humanTurn, copy_board, 3)
+        print("AI thinking")
+        return_node, best_move = machinePlayer.alphaBetaMinimax(root_node)
+        print("AI move is from {} to {}".format(best_move[0], best_move[1]))
+        data_board.move_piece(best_move[0],best_move[1])
+        data_board.pp_board()
 
-
+    winner = data_board.detectWin()
+    if winner[0] and winner[1]:
+        not_winner = False
+        print("Draw. End Game")
+    elif winner[0]:
+        not_winner = False
+        print("Red wins")
+    elif winner[1]:
+        not_winner = False
+        print("Blue wins")
+    else:
+        not_winner = True
+    data_board.changeTurn()
         
 
 
