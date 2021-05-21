@@ -14,8 +14,8 @@ class Board:
         self.redCorner = []
         
         #self.initPieces()
-        self.getRedCorner()
-        self.getBlueCorner()
+        self.getRedCorner(int(size/2))
+        self.getBlueCorner(int(size/2))
         self.chosenMove = 0
 
     def changeTurn(self):
@@ -58,15 +58,23 @@ class Board:
         for j in range(5,10):
             self.board[j,(5+9-j):10] = self.BLUE
 
-    def getRedCorner(self):
-        points = np.where(self.board == self.RED)
-        for i in zip(points[0],points[1]):
-            self.redCorner.append(i)
+    def getRedCorner(self, size):
+        # points = np.where(self.board == self.RED)
+        # for i in zip(points[0],points[1]):
+        #     self.redCorner.append(i)
+        for i in range(0, size):
+            for j in range(0, size-i):
+                self.redCorner.append((i,j))        
+
     
-    def getBlueCorner(self):
-        points = np.where(self.board == self.BLUE)
-        for i in zip(points[0], points[1]):
-            self.blueCorner.append(i)
+    def getBlueCorner(self, size):
+        for i in range(0, size):
+            cur_row = (size * 2) - (size -i)
+            start_col = size * 2 - 1 - i
+            end_col = size * 2
+            for col in range(start_col, end_col):
+                self.blueCorner.append((cur_row, col))
+
 
     def get_height(self):
         return self.size
@@ -106,5 +114,19 @@ class Board:
     def set_board(self, new_board):
         self.board = np.copy(new_board)
     
+    def pp_board(self, targets=[]):
+        for i in range(self.size):
+            for j in range(self.size):
+                if self.board[i][j] == 0 and (i,j) not in targets:
+                    print('_', end='  ')
+                if self.board[i][j] == 1 and (i,j) not in targets:
+                    print('O', end='  ')
+                if self.board[i][j] == 2 and (i,j) not in targets:
+                    print('X', end='  ')
+                if (i,j) in targets:
+                    print('+', end='  ')
+            
+            print()
+
 
     

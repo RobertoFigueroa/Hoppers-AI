@@ -38,14 +38,15 @@ else:
     _, best_move = machinePlayer.alphaBetaMinimax(root_node)
     data_board.changeTurn()
 
-data_board.print_board()
+data_board.pp_board()
 
 while(not_winner):
     if data_board.turn == 2:
         coords = input("Inserte row and column of the tile you want to move: ")
         coords_splitted = coords.split(',')
-        legal_moves = machinePlayer.generate_legal_moves(int(coords_splitted[0]), int(coords_splitted[1]), data_board.get_board())
-        print("Places to move: ", legal_moves)
+        legal_moves = machinePlayer.generate_legal_moves(int(coords_splitted[0])-1, int(coords_splitted[1])-1, data_board.get_board())
+        print("Places to move: \n")
+        data_board.pp_board(legal_moves)
 
 
 
