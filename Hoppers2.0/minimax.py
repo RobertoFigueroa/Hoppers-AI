@@ -3,6 +3,8 @@ from board import Board
 import numpy as np
 import time
 import math
+from collections import defaultdict
+
 
 class Minimax:
 
@@ -56,7 +58,7 @@ class Minimax:
                     
                         self.prevSpots.append((row, col))
                         jumps.append((row + 2*row_offset, col + 2*col_offset))
-
+                        
                         future_hops = self.hop_search(row_jump_offset, col_jump_offset, board)
 
                         jumps.extend(future_hops)
@@ -65,6 +67,7 @@ class Minimax:
 
         return jumps
 
+    
     def generate_legal_moves(self, row, col, board):
         gameboard = Board()
 
@@ -98,7 +101,7 @@ class Minimax:
                 if (row + row_offset) < 0 or (col + col_offset) < 0:
                     continue
                 
-                if (board[row + row_offset][col + col_offset] == 0):
+                if (board[row + row_offset][col + col_offset] == 0): #means its empty
                     if (board[row][col] == 1 and (row, col) not in gameboard.redCorner):
                         if ((row + row_offset, col + col_offset) in gameboard.redCorner):
                             continue
@@ -145,9 +148,11 @@ class Minimax:
                    distanceList = [self.distance((row, col), goals) for goals in board.blueCorner if data_board[goals[0]][goals[1]] != 1]
                    red += max(distanceList) if len(distanceList) else - 100
         if node.player == 1:
-            value = red/blue
+            value = red/blue #opt for down corner
         else:
-            value = blue/red
+            value = blue/red #opt for up corner
+
+        #value = blue/red
 
         if winCheck[0]:
             value = float("inf")
@@ -182,12 +187,11 @@ class Minimax:
             return node, best_move
 
         player = node.get_player()
-        next_player = player
 
         if player == 1:
-            player_positions = board.get_blue_positions()
-        elif player == 2:
             player_positions = board.get_red_positions()
+        elif player == 2:
+            player_positions = board.get_blue_positions()
         
         value = float("-inf")
         data_board = board.get_board()
@@ -207,7 +211,7 @@ class Minimax:
 
                 board_copy.move_piece(move, legal_move)
 
-                next_node = Node(player, board_copy, node.get_depth() -1)
+                next_node = Node(((player+2)%2)+1, board_copy, node.get_depth() -1)
 
                 next_node.move = (move, legal_move)
 
@@ -233,7 +237,6 @@ class Minimax:
         return_node.set_value(value)
         return return_node, best_move
 
-
     def minValue(self, node, alpha, beta):
         self.end =  time.time()
 
@@ -246,12 +249,11 @@ class Minimax:
             return node, best_move
 
         player = node.get_player()
-        next_player = player
 
         if player == 1:
-            player_positions = board.get_blue_positions()
-        elif player == 2:
             player_positions = board.get_red_positions()
+        elif player == 2:
+            player_positions = board.get_blue_positions()
         
         value = float("inf")
         data_board = board.get_board()
@@ -271,7 +273,7 @@ class Minimax:
 
                 board_copy.move_piece(move, legal_move)
 
-                next_node = Node(player, board_copy, node.get_depth() -1)
+                next_node = Node(((player+2)%2)+1, board_copy, node.get_depth() -1)
 
                 next_node.move = (move, legal_move)
 
@@ -299,6 +301,102 @@ class Minimax:
 
 
 
+class MonteCarloTreeSearchNode():
+    def __init__(self, state, parent=None, parent_action=None):
+        self.state = state #board
+        self.parent = parent
+        self.parent_action = parent_action
+        self.children = []
+        self._number_of_visits = 0
+        self._results = defaultdict(int)
+        self._results[1] = 0
+        self._results[-1] = 0
+        self._untried_actions = None
+        self._untried_actions = self.untried_actions()
 
-                
+    def untried_actions(self):
+        self._untried_actions = self.state.get_legal_moves()
+        return self._untried_actions
+
+    def q(self):
+        wins = self._results[1]
+        loses = self._results[-1]
+        return wins - loses
+
+    def n(self):
+        return self._number_of_visits
+
+
+    def expand(self):
+	
+        action = self._untried_actions.pop()
+        next_state = self.state.move_piece(action)
+        child_node = MonteCarloTreeSearchNode(
+            next_state, parent=self, parent_action=action)
+
+        self.children.append(child_node)
+        return child_node 
+
+    def is_terminal_node(self):
+        return self.state.detectWin() #checkWin
+
+    
+    def rollout(self):
+        current_rollout_state = self.state
+        
+        while not current_rollout_state.detectWin():
+            
+            possible_moves = current_rollout_state.get_legal_moves()
+            
+            action = self.rollout_policy(possible_moves)
+            current_rollout_state = current_rollout_state.move(action)
+        return current_rollout_state.detectWin()
+
+    def backpropagate(self, result):
+        self._number_of_visits += 1.
+        self._results[result] += 1.
+        if self.parent:
+            self.parent.backpropagate(result)
+
+    def is_fully_expanded(self):
+        return len(self._untried_actions) == 0
+
+    def best_child(self, c_param=0.1):
+        
+        choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((2 * np.log(self.n()) / c.n())) for c in self.children]
+        return self.children[np.argmax(choices_weights)]
+
+    def rollout_policy(self, possible_moves):
+        
+        return possible_moves[np.random.randint(len(possible_moves))]
+
+
+    def _tree_policy(self):
+
+        current_node = self
+        while not current_node.detectWin():
+            
+            if not current_node.is_fully_expanded():
+                return current_node.expand()
+            else:
+                current_node = current_node.best_child()
+        return current_node
+
+
+    def best_action(self):
+        simulation_no = 100
+        
+        
+        for i in range(simulation_no):
+            
+            v = self._tree_policy()
+            reward = v.rollout()
+            v.backpropagate(reward)
+        
+        return self.best_child(c_param=0.)
+
+    
+
+
+                    
 

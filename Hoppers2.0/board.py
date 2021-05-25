@@ -24,6 +24,8 @@ class Board:
         else:
             self.turn = 1
 
+    def setTurn(self, turn):
+        self.turn = turn
 
     def detectWin(self):
         blueWins = False
