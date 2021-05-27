@@ -1,5 +1,6 @@
 from node import Node
 from board import Board
+from path import NodePath
 import numpy as np
 import time
 import math
@@ -19,6 +20,10 @@ class Minimax:
         self.prunes = 0
         self.boards = 0
         self.alphaBeta = alphaBeta
+        self.path = []
+
+    def clearPath(self):
+        self.path = []
 
     def hop_search(self, row, col, board):
         row_offsets = [-1, 0, 1]
@@ -47,7 +52,9 @@ class Minimax:
                         continue
                 
                     if(board[row + 2*row_offset][col+2*col_offset] == 0 and (row + 2*row_offset, col+2*col_offset) not in self.prevSpots):
-                    
+                        
+                        self.path.append(NodePath((row, col), (row+row_offset, col+col_offset), (row_jump_offset, col_jump_offset)))
+
                         if(board[row][col] == 1 and (row,col) not in gameboard.redCorner):
                             if((row_jump_offset, col_jump_offset) in gameboard.redCorner):
                                 continue
