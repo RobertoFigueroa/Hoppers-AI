@@ -30,21 +30,26 @@ class Board:
     def detectWin(self):
         blueWins = False
         redWins = False
+        red_coins = 0
+        blue_coins = 0
+        empty_coins = 0
 
         #check if all the tiles in blue corner are filled with red
         for coord in self.blueCorner:
-            if self.get_piece_at(coord[0], coord[1]) == False or self.get_piece_at(coord[0],coord[1]) == 2:
-                redWins = False
-                break
-            elif self.get_piece_at(coord[0], coord[1]) == 1:
-                redWins = True
+            if self.get_piece_at(coord[0], coord[1]) == self.BLUE:
+                blue_coins += 1
+            if self.get_piece_at(coord[0], coord[1]) == self.EMPTY:
+                empty_coins += 1
+        if blue_coins < 15 and empty_coins == 0:
+            redWins = True
+        empty_coins = 0
         for coord in self.redCorner:
-            if self.get_piece_at(coord[0], coord[1]) == False or self.get_piece_at(coord[0], coord[1]) == 1:
-                blueWins = False
-                break
-            elif self.get_piece_at(coord[0], coord[1]) == 2:
-                blueWins = True
-
+            if self.get_piece_at(coord[0], coord[1]) == self.RED:
+                red_coins += 1
+            elif self.get_piece_at(coord[0], coord[1]) == self.EMPTY:
+                empty_coins += 1
+        if red_coins < 15 and empty_coins == 0:
+            blueWins = True
         return (redWins, blueWins)
     
     def get_piece_at(self, row, col):
@@ -129,6 +134,38 @@ class Board:
                     print('+', end='  ')
             
             print()
+
+
+    #def check_for_winner(self):
+        # first_player_columns = 5
+        # first_player_coins = 0
+        # second_player_coins = 0
+        # free_space_coins = 0
+        # for i in range(5):
+        #     for j in range(first_player_columns):
+        #         if self.board[i][j] == self.first_player_symbol:
+        #            first_player_coins += 1
+        #         if self.board[i][j] == self.free_space_symbol:
+        #             free_space_coins += 1
+        #     first_player_columns -= 1
+        
+        # if first_player_coins < 15 and free_space_coins == 0:
+        #     return 1 #1 Means first player won
+
+        # free_space_coins = 0   
+        # second_player_columns = 9
+        # for i in range(5,10):
+        #     for j in range(second_player_columns,10):
+        #         if self.board[i][j] == self.second_player_symbol:
+        #             second_player_coins += 1
+        #         if self.board[i][j] == self.free_space_symbol:
+        #             free_space_coins += 1
+        #     second_player_columns -= 1
+
+        # if second_player_coins < 15 and free_space_coins == 0:
+        #     return -1 #means second player won
+        
+        # return 0 #no winner
 
 
     
