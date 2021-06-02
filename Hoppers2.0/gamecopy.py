@@ -1,6 +1,6 @@
 from types import coroutine
 from board import Board
-from minimax import Minimax
+from dummyminmax import Minimax
 from node import Node
 import sys
 
